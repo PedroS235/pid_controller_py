@@ -1,0 +1,7 @@
+__pychace__
+.venv
+venv
+.env
+env
+.vscode
+.idea
