@@ -1,4 +1,7 @@
 class PID:
+    """A simple PID controller which can be used to control a system.
+    Make sure to call the compute method on every main loop iteration.
+    """
     _pid_gains: tuple
     _output_limits: tuple
     _error_sum: float
