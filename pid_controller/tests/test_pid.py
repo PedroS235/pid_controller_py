@@ -11,9 +11,11 @@ def test_pid_gains(pid):
     pid.set_pid_gains((2, 2, 2))
     assert pid.get_pid_gains() == (2, 2, 2)
 
+
 def test_pid_gains_with_negative_value(pid):
     with pytest.raises(AssertionError):
         pid.set_pid_gains((-2, 2, 2))
+
 
 def test_pid_gains_with_wrong_number_of_values(pid):
     with pytest.raises(AssertionError):
@@ -23,6 +25,7 @@ def test_pid_gains_with_wrong_number_of_values(pid):
 def test_output_limits(pid):
     pid.set_output_limits((-2, 2))
     assert pid.get_output_limits() == (-2, 2)
+
 
 def test_output_limits_with_wrong_number_of_values(pid):
     with pytest.raises(AssertionError):
@@ -42,31 +45,35 @@ def test_zero_error(pid):
 def test_proportional_gain(pid):
     pid.set_pid_gains((2, 0, 0))
     pid.set_setpoint(10)
-    pid.set_output_limits((float('-inf'), float('inf')))
+    pid.set_output_limits((float("-inf"), float("inf")))
     assert pid.compute(0) == 20
+
 
 def test_integral_gain(pid):
     pid.set_pid_gains((0, 2, 0))
     pid.set_setpoint(10)
-    pid.set_output_limits((float('-inf'), float('inf')))
+    pid.set_output_limits((float("-inf"), float("inf")))
     assert pid.compute(0) == 20
+
 
 def test_derivative_gain(pid):
     pid.set_pid_gains((0, 0, 2))
     pid.set_setpoint(10)
-    pid.set_output_limits((float('-inf'), float('inf')))
+    pid.set_output_limits((float("-inf"), float("inf")))
     assert pid.compute(0) == 20
+
 
 def test_p_i_gains(pid):
     pid.set_pid_gains((2, 2, 0))
     pid.set_setpoint(10)
-    pid.set_output_limits((float('-inf'), float('inf')))
+    pid.set_output_limits((float("-inf"), float("inf")))
     assert pid.compute(5) == 20
+
 
 def test_p_d_i_gains(pid):
     pid.set_pid_gains((2, 2, 2))
     pid.set_setpoint(10)
-    pid.set_output_limits((float('-inf'), float('inf')))
+    pid.set_output_limits((float("-inf"), float("inf")))
     assert pid.compute(5) == 30
 
 
