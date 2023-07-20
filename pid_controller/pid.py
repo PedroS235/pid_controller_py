@@ -2,6 +2,7 @@ class PID:
     """A simple PID controller which can be used to control a system.
     Make sure to call the compute method on every main loop iteration.
     """
+
     _pid_gains: tuple
     _output_limits: tuple
     _error_sum: float
@@ -11,7 +12,7 @@ class PID:
     def __init__(
         self,
         pid_gains: tuple,
-        output_limits = (0, 255),
+        output_limits=(0, 255),
     ) -> None:
         """Constructor for the PID class
 
@@ -151,12 +152,7 @@ class PID:
         Returns:
             float: The bounded value
         """
-        if value > max_value:
-            return max_value
-        elif value < min_value:
-            return min_value
-        else:
-            return value
+        return max(min_value, min(value, max_value))
 
     def _assert_pid_gains(self, pid_gains: tuple) -> None:
         """Asserts that the pid_gains parameter is valid
