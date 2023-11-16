@@ -123,10 +123,11 @@ class PID:
         """
         kp, ki, kd = self._pid_gains
         min_output, max_output = self._output_limits
+
         error = self._setpoint - measured_value
         self._error_sum += error
 
-        self._error_sum = self._bound_value(
+        self._error_sum = self._clamp_value(
             self._error_sum, min_output, max_output
         )
 
@@ -137,12 +138,12 @@ class PID:
         self._prev_error = error
 
         correction = p_term + i_term + d_term
-        return self._bound_value(correction, min_output, max_output)
+        return self._clamp_value(correction, min_output, max_output)
 
-    def _bound_value(
+    def _clamp_value(
         self, value: float, min_value: float, max_value: float
     ) -> float:
-        """Bounds the value between the min and max values
+        """Clamps the value between the min and max values
 
         Args:
             value (float): The value to bound
@@ -170,10 +171,6 @@ class PID:
         assert (
             len(pid_gains) == 3
         ), "The pid_gains parameter should only contain 3 values: kp, ki, kd"
-
-        assert (
-            pid_gains[0] >= 0 and pid_gains[1] >= 0 and pid_gains[2] >= 0
-        ), "All pid gains must be a positive float"
 
     def _assert_output_limits(self, output_limits: tuple) -> None:
         """Asserts that the output_limits parameter is valid
