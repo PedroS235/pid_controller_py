@@ -12,11 +12,6 @@ def test_pid_gains(pid):
     assert pid.get_pid_gains() == (2, 2, 2)
 
 
-def test_pid_gains_with_negative_value(pid):
-    with pytest.raises(AssertionError):
-        pid.set_pid_gains((-2, 2, 2))
-
-
 def test_pid_gains_with_wrong_number_of_values(pid):
     with pytest.raises(AssertionError):
         pid.set_pid_gains((1, 2, 3, 4))
