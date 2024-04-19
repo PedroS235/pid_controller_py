@@ -1,18 +1,23 @@
+from typing import Tuple
+
+
 class PID:
     """A simple PID controller which can be used to control a system.
     Make sure to call the compute method on every main loop iteration.
     """
 
-    _pid_gains: tuple
-    _output_limits: tuple
+    _pid_gains: Tuple[float, float, float]
+    _output_limits: Tuple[float, float]
+    _integral_limits: Tuple[float, float]
     _error_sum: float
     _prev_error: float
     _setpoint: float
 
     def __init__(
         self,
-        pid_gains: tuple,
-        output_limits=(0, 255),
+        pid_gains: Tuple[float, float, float],
+        output_limits: Tuple[float, float] = (0.0, 255.0),
+        integral_limits: Tuple[float, float] = (0.0, 125.0),
     ) -> None:
         """Constructor for the PID class
 
@@ -31,11 +36,14 @@ class PID:
         """
         self._assert_pid_gains(pid_gains)
         self._assert_output_limits(output_limits)
+        self._assert_output_limits(integral_limits)
 
         self._pid_gains = pid_gains
         self._output_limits = output_limits
+        self._integral_limits = integral_limits
+        self.reset()
 
-    def set_output_limits(self, output_limits: tuple) -> None:
+    def set_output_limits(self, output_limits: Tuple[float, float]) -> None:
         """Sets the output limits
 
         Args:
@@ -51,7 +59,23 @@ class PID:
         self._assert_output_limits(output_limits)
         self._output_limits = output_limits
 
-    def set_pid_gains(self, pid_gains: tuple) -> None:
+    def set_integral_limits(self, integral_limits: Tuple[float, float]) -> None:
+        """Sets the integral limits for anti-windup
+
+        Args:
+            integral_limits (tuple): The integral limits (min, max)
+
+        Raises:
+            AssertionError: If the output_limits parameter is not of length 2
+            AssertionError: If the output_limits parameter is not of the form (min, max)
+
+        Returns:
+            None
+        """
+        self._assert_output_limits(integral_limits)
+        self._integral_limits = integral_limits
+
+    def set_pid_gains(self, pid_gains: Tuple[float, float, float]) -> None:
         """Sets the PID gains
 
         Args:
@@ -67,16 +91,18 @@ class PID:
         self._assert_pid_gains(pid_gains)
         self._pid_gains = pid_gains
 
-    def set_setpoint(self, setpoint: float) -> None:
+    def set_setpoint(self, setpoint: float, reset: bool = False) -> None:
         """Sets the setpoint
 
         Args:
             setpoint (float): The setpoint
+            reset (bool): Resets the errors
 
         Returns:
             None
         """
-        self.reset()
+        if reset:
+            self.reset()
         self._setpoint = setpoint
 
     def get_pid_gains(self) -> tuple:
@@ -92,6 +118,14 @@ class PID:
 
         Returns:
             tuple: The output limits (min, max)
+        """
+        return self._output_limits
+
+    def get_integral_limits(self) -> tuple:
+        """Returns the integral limits
+
+        Returns:
+            tuple: The integral limits (min, max)
         """
         return self._output_limits
 
@@ -123,12 +157,17 @@ class PID:
         """
         kp, ki, kd = self._pid_gains
         min_output, max_output = self._output_limits
+        min_integral, max_integral = self._integral_limits
 
         error = self._setpoint - measured_value
-        self._error_sum += error
 
+        # Eliminate possible noise on the integral term
+        if error == 0 and self._setpoint == 0:
+            self.reset()
+
+        # Integral Anti-windup
         self._error_sum = self._clamp_value(
-            self._error_sum, min_output, max_output
+            self._error_sum + error, min_integral, max_integral
         )
 
         p_term = kp * error
@@ -140,9 +179,7 @@ class PID:
         correction = p_term + i_term + d_term
         return self._clamp_value(correction, min_output, max_output)
 
-    def _clamp_value(
-        self, value: float, min_value: float, max_value: float
-    ) -> float:
+    def _clamp_value(self, value: float, min_value: float, max_value: float) -> float:
         """Clamps the value between the min and max values
 
         Args:
@@ -188,8 +225,8 @@ class PID:
         """
         assert (
             len(output_limits) == 2
-        ), "The output_limits parameter should only have a max & min value"
+        ), "The output_limits parameter should have be of the form (max_output, min_output)"
 
         assert (
             output_limits[0] < output_limits[1]
-        ), "Please make sure the output_limits is of the form: (min, max)"
+        ), "Please make sure the output_limits is of the form min < max"
